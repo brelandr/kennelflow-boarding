@@ -1,0 +1,130 @@
+.kennelpress-fs-root {
+	max-width: 960px;
+}
+
+.kennelpress-fs-loc {
+	margin-bottom: 1.5rem;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	padding: 0;
+}
+
+.kennelpress-fs-loc summary {
+	cursor: pointer;
+	padding: 0.75rem 1rem;
+	font-weight: 600;
+	background: #f6f7f7;
+	list-style: none;
+}
+
+.kennelpress-fs-loc summary::-webkit-details-marker {
+	display: none;
+}
+
+.kennelpress-fs-loc .kennelpress-fs-body {
+	padding: 1rem;
+}
+
+.kennelpress-fs-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr 1fr;
+	gap: 0.5rem;
+	align-items: center;
+	margin-bottom: 0.35rem;
+	font-size: 13px;
+}
+
+@media (max-width: 782px) {
+	.kennelpress-fs-row {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.kennelpress-fs-row-head {
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+
+.kennelpress-fs-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 1rem;
+}
+
+.kennelpress-fs-table th,
+.kennelpress-fs-table td {
+	border: 1px solid #dcdcde;
+	padding: 0.35rem 0.5rem;
+	text-align: left;
+}
+
+.kennelpress-fs-muted {
+	color: #646970;
+	font-size: 12px;
+}
+
+.kennelpress-fs-actions {
+	margin-top: 1rem;
+}
+
+.kennelpress-fs-msg {
+	padding: 0.5rem;
+	margin-bottom: 0.75rem;
+	border-radius: 4px;
+}
+
+.kennelpress-fs-msg.error {
+	background: #fcf0f1;
+	border: 1px solid #f0a8b0;
+	color: #8a2424;
+}
+
+.kennelpress-fs-msg.ok {
+	background: #edfaef;
+	border: 1px solid #4ab866;
+	color: #1e4620;
+}
+
+.kennelpress-fs-add-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: flex-end;
+	margin-bottom: 0.5rem;
+}
+
+.kennelpress-fs-add-row label {
+	display: flex;
+	flex-direction: column;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.kennelpress-fs-add-row input {
+	min-width: 8rem;
+}
+
+.kennelpress-fs-boarding-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: 0.75rem 1rem;
+	align-items: end;
+	margin-bottom: 1rem;
+}
+
+.kennelpress-fs-boarding-grid label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.kennelpress-fs-table-boarding {
+	font-size: 12px;
+}
+
+.kennelpress-fs-table-boarding input[type='time'] {
+	min-width: 6rem;
+}

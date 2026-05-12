@@ -1,0 +1,89 @@
+# KennelFlow Boarding (FREE — WordPress.org)
+# ---------------------------------------------------------------------------
+# Plugin Name:        KennelFlow Boarding Manager
+# Slug:                kennelflow-boarding
+# Text Domain:        kennelflow-boarding
+# Function prefix:     kennelflow_boarding_
+# Class prefix:        KennelFlow_Boarding_
+# Constant prefix:     KENNELFLOW_BOARDING_
+# Legacy:              kennelpress() accessor (alias), kennelpress_* hooks (dual-fired with kennelflow_boarding_*)
+# Requires:            kennelflow-core
+# ---------------------------------------------------------------------------
+# WPCS, Golden Nonce, do_action sockets for Pro; text domain kennelflow-boarding.
+# End: **Context: FREE (KennelFlow Boarding)**
+
+---
+
+# 🔍 SECTION 6: WP.ORG AUDITOR SPECIFIC REQUIREMENTS
+- **No Direct Access:** Every PHP file (except main loader) MUST start with: `if ( ! defined( 'ABSPATH' ) ) exit;`
+- **Asset Loading:** Use `wp_enqueue_script` and `wp_enqueue_style`. Never hardcode `<script>` or `<link>` tags in the header/footer. 
+- **Remote Requests:** Use `wp_safe_remote_get` and `wp_safe_remote_post`. Never use `curl` or `file_get_contents` for external URLs.
+- **Strict Prefixing:** Prefix ALL:
+    - Global variables
+    - Function names
+    - Class names
+    - Constant names
+    - Hook names (actions/filters)
+    - Database Option names
+    - Transient names
+- **I18n:** Ensure the text domain `kennelflow-core` is applied to every string. Use `esc_html_e()` for echoed translations.
+
+---
+
+# WordPress.org Plugin Repository Compliance Rules
+
+## 1. Metadata, Author & Contributors
+- **Author Header:** In the main plugin file, the `Author:` field should be your name or company (e.g., "Randy Breland" or "Land Tech Web Designs, Corp").
+- **Contributors List:** In `readme.txt`, the `Contributors:` field MUST include your WordPress.org username: **brelandr**.
+- **Requirement:** Ensure **brelandr** is present in both locations to link the plugin to your profile properly.
+
+## 2. Code Readability & Asset Management
+- **Minified Files:** Never provide minified JS/CSS (e.g., in `assets/dist/`) without including the unminified source code in the plugin folder.
+- **Source Links:** If using build tools (npm/webpack), the `readme.txt` MUST contain a link to the public source repository (e.g., GitHub) where the unminified code resides.
+
+## 3. Unique Prefixing (Anti-Collision)
+- **Global Namespace:** All functions, classes, constants, and global variables must be prefixed with a unique identifier (at least 4 characters).
+- **Consolidate Prefixes:** Boarding uses `kennelflow_boarding_*` / dual `kennelpress_*`; do not add new `vetpress_*` identifiers here.
+- **Reserved Prefixes:** Never use `wp_`, `_`, or `__` as a prefix for custom functions.
+- **Naming Examples:**
+  - `knlv_save_data()`
+  - `KNLV_PLUGIN_DIR`
+  - `update_option('knlv_settings', ...)`
+
+## 4. Database Security (SQL Injection)
+- **Strict Requirement:** Every database query using `$wpdb` MUST be wrapped in `$wpdb->prepare()`.
+- **Example:** 
+  $wpdb->query($wpdb->prepare("UPDATE `$table` SET col = %s WHERE id = %d", $val, $id));
+
+## 5. Development Standards
+- **Function Checks:** Avoid `if (!function_exists('...'))` for plugin-specific functions; use unique names/namespaces instead.
+- **Standard Adherence:** Maintain compliance with [WordPress Detailed Plugin Guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/).
+
+---
+
+# ⚖️ SECTION 8: WORDPRESS.ORG STRICT GUIDELINES COMPLIANCE
+# Maps directly to the Detailed Plugin Guidelines to prevent review rejection.
+
+## A. Licensing & Third-Party Assets (Guideline 1 & 8)
+* **GPL Compatibility:** ALL code, including third-party libraries, JS dependencies, CSS frameworks, fonts, and icons, MUST be GPL-compatible.
+* **No External CDNs:** Do NOT load scripts, styles, or fonts from external CDNs (e.g., `cdnjs`, `jsdelivr`, `googleapis`). ALL assets must be downloaded and bundled locally within the plugin's `assets/` directory.
+* **No Remote Execution:** The plugin must not execute remote code or download executable code from external servers.
+
+## B. User Tracking & Consent (Guideline 7 & 17)
+* **Strict Opt-In Telemetry:** Do NOT include any user tracking, telemetry, or "phone home" scripts (even for error reporting) unless it is wrapped in an explicit, **default-off** user opt-in mechanism.
+* **No Spam:** Do NOT auto-subscribe users to mailing lists. 
+
+## C. Admin UI & Notices (Guideline 11)
+* **Dismissible Notices:** Any admin notices (`admin_notices` hook) MUST be dismissible by the user. Include logic to save the dismissed state (e.g., via user meta) so it does not reappear on every page load.
+* **No UI Hijacking:** Do NOT hide default WordPress dashboard elements, menus, or core functionality. 
+* **Settings Links:** Place settings pages in standard locations (e.g., under Settings, Tools, or a dedicated top-level menu). Do not create intrusive top-level menus if a sub-menu suffices.
+
+## D. Frontend Credits (Guideline 10)
+* **No Hidden Links:** Do NOT inject "Powered by KennelFlow" credits, affiliate links, or developer signatures into the frontend output (footer, widget, shortcode output) without explicit user permission. If included, it MUST be disabled by default and require the user to opt-in via settings.
+
+## E. Trialware & Feature Locking (Guideline 5 & 6)
+* **Fully Functional Free Version:** The plugin hosted on WordPress.org MUST be fully functional. Do not include arbitrary limits (e.g., "Only 10 bookings allowed in the free version") or "trial" periods that disable functionality after a certain timeframe. 
+* **Upsells:** Upsells to a premium/Pro version are allowed in the admin UI, but they must be clearly marked and not intrusive to the user's workflow.
+
+## F. Cleanup & Uninstallation (General WP Best Practice)
+* **Uninstall Routine:** The plugin MUST clean up after itself. Ensure the presence of an `uninstall.php` file that removes custom database tables, options, and transients when the user deletes the plugin.

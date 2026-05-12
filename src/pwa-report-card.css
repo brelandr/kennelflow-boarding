@@ -1,0 +1,260 @@
+/**
+ * Mobile Report Card PWA — mobile-first, full width.
+ *
+ * @package KennelPress
+ */
+
+.kpr-root {
+	box-sizing: border-box;
+	min-height: 100vh;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	background: #0f172a;
+	color: #f8fafc;
+	-webkit-font-smoothing: antialiased;
+}
+
+.kpr-root *,
+.kpr-root *::before,
+.kpr-root *::after {
+	box-sizing: border-box;
+}
+
+.kpr-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	padding: 16px 18px;
+	background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+	border-bottom: 1px solid rgba( 148, 163, 184, 0.2 );
+}
+
+.kpr-title {
+	margin: 0;
+	font-size: 1.35rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+.kpr-sub {
+	margin: 6px 0 0;
+	font-size: 0.875rem;
+	color: #94a3b8;
+}
+
+.kpr-main {
+	padding: 16px 18px 32px;
+	max-width: 640px;
+	margin: 0 auto;
+}
+
+.kpr-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.kpr-card {
+	width: 100%;
+	text-align: left;
+	padding: 18px 20px;
+	border: none;
+	border-radius: 14px;
+	background: #1e293b;
+	color: #f8fafc;
+	font-size: 1.125rem;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 4px 14px rgba( 0, 0, 0, 0.25 );
+	min-height: 56px;
+	touch-action: manipulation;
+}
+
+.kpr-card:active {
+	transform: scale( 0.98 );
+}
+
+.kpr-card-meta {
+	display: block;
+	margin-top: 6px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: #94a3b8;
+}
+
+.kpr-empty,
+.kpr-error {
+	padding: 24px;
+	text-align: center;
+	color: #94a3b8;
+	font-size: 1rem;
+}
+
+.kpr-error {
+	color: #fca5a5;
+}
+
+.kpr-back {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 16px;
+	padding: 12px 16px;
+	min-height: 48px;
+	border: 1px solid rgba( 148, 163, 184, 0.35 );
+	border-radius: 12px;
+	background: transparent;
+	color: #e2e8f0;
+	font-size: 1rem;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.kpr-field {
+	margin-bottom: 22px;
+}
+
+.kpr-label {
+	display: block;
+	margin-bottom: 10px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #94a3b8;
+}
+
+.kpr-file-input {
+	position: absolute;
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	z-index: -1;
+}
+
+.kpr-file-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 56px;
+	width: 100%;
+	padding: 16px;
+	border-radius: 14px;
+	border: 2px dashed rgba( 96, 165, 250, 0.5 );
+	background: rgba( 30, 41, 59, 0.8 );
+	color: #93c5fd;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.kpr-file-btn.has-file {
+	border-style: solid;
+	border-color: #22c55e;
+	color: #86efac;
+}
+
+.kpr-toggle-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.kpr-toggle {
+	flex: 1 1 calc( 33.333% - 10px );
+	min-width: 96px;
+	min-height: 52px;
+	padding: 14px 12px;
+	border-radius: 12px;
+	border: 2px solid rgba( 148, 163, 184, 0.35 );
+	background: #1e293b;
+	color: #e2e8f0;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.kpr-toggle[aria-pressed='true'] {
+	border-color: #3b82f6;
+	background: rgba( 59, 130, 246, 0.25 );
+	color: #fff;
+}
+
+.kpr-toggle--half {
+	flex: 1 1 calc( 50% - 8px );
+	min-width: 120px;
+}
+
+.kpr-notes {
+	width: 100%;
+	min-height: 120px;
+	padding: 16px;
+	border-radius: 12px;
+	border: 1px solid rgba( 148, 163, 184, 0.35 );
+	background: #1e293b;
+	color: #f8fafc;
+	font-size: 1.05rem;
+	line-height: 1.45;
+	resize: vertical;
+}
+
+.kpr-submit {
+	width: 100%;
+	margin-top: 8px;
+	padding: 20px 24px;
+	min-height: 60px;
+	border: none;
+	border-radius: 14px;
+	background: linear-gradient( 135deg, #2563eb 0%, #1d4ed8 100% );
+	color: #fff;
+	font-size: 1.2rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba( 37, 99, 235, 0.45 );
+	touch-action: manipulation;
+}
+
+.kpr-submit:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.kpr-submit:active:not( :disabled ) {
+	transform: scale( 0.99 );
+}
+
+.kpr-success {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 50vh;
+	padding: 32px;
+	text-align: center;
+}
+
+.kpr-success-icon {
+	font-size: 4.5rem;
+	line-height: 1;
+	margin-bottom: 16px;
+}
+
+.kpr-success-msg {
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #86efac;
+}
+
+.kpr-loading {
+	padding: 40px;
+	text-align: center;
+	color: #94a3b8;
+}
