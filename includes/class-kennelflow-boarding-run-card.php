@@ -168,6 +168,10 @@ class KennelFlow_Boarding_Run_Card {
 		$checkin  = self::format_gmt_local( $start );
 		$checkout = self::format_gmt_local( $end );
 
+		$print_js_rel  = 'assets/js/run-card-print.js';
+		$print_js_path = KENNELFLOW_BOARDING_PLUGIN_DIR . $print_js_rel;
+		$print_js_ver  = is_readable( $print_js_path ) ? (string) filemtime( $print_js_path ) : KENNELFLOW_BOARDING_VERSION;
+
 		nocache_headers();
 		header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
 
@@ -285,7 +289,7 @@ class KennelFlow_Boarding_Run_Card {
 </head>
 <body>
 	<div class="kprc-screen-actions">
-		<button type="button" onclick="window.print();"><?php esc_html_e( 'Print', 'kennelflow-boarding' ); ?></button>
+		<button type="button" class="kprc-print-trigger"><?php esc_html_e( 'Print', 'kennelflow-boarding' ); ?></button>
 	</div>
 	<div class="kprc-card">
 		<h1 class="kprc-title"><?php echo esc_html( $pet_name ? $pet_name : __( 'Pet', 'kennelflow-boarding' ) ); ?></h1>
@@ -330,6 +334,13 @@ class KennelFlow_Boarding_Run_Card {
 			<div class="kprc-body"><?php echo esc_html( '' !== $stay_bel ? $stay_bel : __( '—', 'kennelflow-boarding' ) ); ?></div>
 		</div>
 	</div>
+		<?php
+		// phpcs:disable WordPress.WP.EnqueuedResources -- Stand-alone printable document outside wp_enqueue_scripts.
+		?>
+		<script src="<?php echo esc_url( KENNELFLOW_BOARDING_PLUGIN_URL . $print_js_rel ); ?>?ver=<?php echo esc_attr( $print_js_ver ); ?>"></script>
+		<?php
+		// phpcs:enable WordPress.WP.EnqueuedResources
+		?>
 </body>
 </html>
 		<?php

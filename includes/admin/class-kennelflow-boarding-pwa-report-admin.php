@@ -16,6 +16,8 @@ class KennelFlow_Boarding_PWA_Report_Admin {
 
 	const SCRIPT_HANDLE = 'kennelflow-boarding-pwa-report-card';
 
+	const HTML_CLASS_SCRIPT_HANDLE = 'kennelflow-boarding-pwa-report-html-class';
+
 	/**
 	 * Hooks.
 	 *
@@ -147,10 +149,22 @@ class KennelFlow_Boarding_PWA_Report_Admin {
 			return;
 		}
 
+		$html_rel  = 'assets/js/admin-pwa-report-html-class.js';
+		$html_path = KENNELFLOW_BOARDING_PLUGIN_DIR . $html_rel;
+		if ( is_readable( $html_path ) ) {
+			wp_enqueue_script(
+				self::HTML_CLASS_SCRIPT_HANDLE,
+				KENNELFLOW_BOARDING_PLUGIN_URL . $html_rel,
+				array(),
+				(string) filemtime( $html_path ),
+				true
+			);
+		}
+
 		wp_enqueue_script(
 			self::SCRIPT_HANDLE,
 			KENNELFLOW_BOARDING_PLUGIN_URL . 'build/pwa-report-card.js',
-			array(),
+			is_readable( $html_path ) ? array( self::HTML_CLASS_SCRIPT_HANDLE ) : array(),
 			KENNELFLOW_BOARDING_VERSION,
 			true
 		);
@@ -159,12 +173,6 @@ class KennelFlow_Boarding_PWA_Report_Admin {
 			self::SCRIPT_HANDLE,
 			'kennelflowBoardingPwaReport',
 			self::get_pwa_boot_data()
-		);
-
-		wp_add_inline_script(
-			self::SCRIPT_HANDLE,
-			'document.documentElement.classList.add("kennelflow-boarding-pwa-report-active");',
-			'before'
 		);
 	}
 

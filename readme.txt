@@ -1,65 +1,105 @@
-=== Kennel Press ===
+=== KennelFlow Boarding ===
 Contributors: brelandr
 Tags: pets, boarding, booking, kennels
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.2
+Text Domain: kennelflow-boarding
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Foundation plugin for pet boarding: pets, kennels, locations, bookings, and availability via REST API. Built by Land Tech Web Designs.
+Boarding for KennelFlow: kennels, bookings, availability REST API, kennel rules, and a Mobile Report Card for staff. Requires KennelFlow Core.
+
+**Developer:** Randy Breland ([brelandr](https://profiles.wordpress.org/brelandr/)), [Land Tech Web Designs](https://landtechwebdesigns.com). Contact: sales@landtechwebdesigns.com
 
 == Description ==
 
-Kennel Press registers custom post types for pets, kennels, and bookings, a location taxonomy, and REST endpoints to query which kennels are available for a date range at a given location. Use it as the data layer for boarding sites; extend with **Kennel Press Pro** for WooCommerce-powered checkout when you are ready.
+KennelFlow Boarding (KennelPress) is the boarding companion for **KennelFlow Core**. It registers kennels and bookings, checks availability, exposes REST endpoints for custom booking flows, and adds front-desk tools for daily operations.
 
-**REST API**
+**What you get**
 
-The plugin exposes REST routes for availability and locations so themes and headless front ends can build booking flows on top of Kennel Press data.
+* **KennelPress Front Desk** — top-level menu with links to bookings and the kennel calendar.
+* **Kennel bookings** — create and manage boarding reservations (pet, kennel, location, dates, status).
+* **Kennels** — define runs and rooms with location, resource type, and capacity.
+* **Kennel calendar** — REST-fed calendar view for a selected UTC date range.
+* **Kennel rules** — per-location hours, holiday closures, blackout windows, and boarding windows (React UI under KennelFlow).
+* **Mobile Report Card** — staff PWA to send daily photo + checklist emails to pet owners for checked-in boarding stays.
+* **REST API** — availability, locations, kennels, bookings, facility settings, and report cards under `kennelflow-boarding/v1` (legacy `kennelpress/v1` routes remain registered for compatibility).
 
-**Mobile report card (staff PWA)**
+Pets and physical locations use **KennelFlow Core** (`kf_pet`, `kf_location`). WooCommerce is optional; use **KennelFlow Boarding Pro** for checkout and payment links.
+
+== Mobile report card (staff PWA) ==
 
 Authorized staff can send a daily photo + checklist email to the pet owner for boarding stays:
 
-* **Who can use it:** WordPress users with `edit_posts` or `kennelpress_send_reports` (the capability is granted to administrator, editor, and groomer roles by default; filter `kennelpress_roles_with_send_reports_cap` to adjust).
-* **Clean staff URL (no wp-admin chrome):** `https://yoursite.com/kennelflow-mobile` — you must use “pretty” permalinks (not “Plain”). After installing or changing rules, open **Settings → Permalinks** and click **Save** once so the route is registered.
-* **Fallback URL:** if you cannot use rewriting, open your home URL with `?kf_pwa=1` (for example `https://yoursite.com/?kf_pwa=1`). Guests are redirected to the login screen; after login, staff see the same app.
-* **Inside WordPress admin:** **Pets → Mobile Report Card** loads the same React app in a full-width screen with the admin menu hidden.
-* **What it does:** Lists **boarding** bookings with status **checked in** for **today** (site timezone). Tap a pet, take a photo (camera on supported phones), set mood (happy / calm / anxious), breakfast yes/no, bathroom yes/no, notes, then **Send Report Card**. The image is saved to the Media Library (attached to the booking), and the owner receives an HTML email via `wp_mail` (pet owner must be linked via KennelFlow Core pet meta).
-* **REST (for integrations):**
-  * `POST /wp-json/kennelpress/v1/report-cards` — `multipart/form-data`: `booking_id`, `photo`, `mood`, `ate_food`, `bathroom`, `notes`. Cookie or Application Password auth; same capability rules as above.
-  * `GET /wp-json/kennelpress/v1/bookings` — optional query args `booking_kind`, `status` (e.g. `boarding` and `checked_in`) in addition to required `start` / `end` UTC range.
-* **Build the PWA bundle (developers):** from the plugin directory run `npm install` then `npm run build` (runs both facility settings and `build/pwa`) or `npm run build:pwa` only. The file `build/pwa-report-card.js` must exist for the admin screen and public URL to work.
+* **Who can use it:** WordPress users with `edit_posts` or `kennelpress_send_reports`.
+* **Staff URL (no wp-admin chrome):** `https://yoursite.com/kennelflow-mobile` — requires pretty permalinks (not “Plain”). After install, open **Settings → Permalinks** and click **Save** once if the URL 404s.
+* **Fallback URL:** `https://yoursite.com/?kf_pwa=1`
+* **WordPress admin:** **KennelPress → Mobile Report Card** (same app, full-width, admin menu hidden).
+* **What it does:** Lists **boarding** bookings with status **checked in** for **today** (site timezone). Take a photo, set mood, breakfast, bathroom, notes, then **Send Report Card**. The image is saved to the Media Library and the owner receives an HTML email (pet owner must be linked via KennelFlow Core).
+* **REST:** `POST /wp-json/kennelflow-boarding/v1/report-cards` (multipart: `booking_id`, `photo`, `mood`, `ate_food`, `bathroom`, `notes`).
 
-== Kennel Press Pro ==
+== KennelFlow Boarding Pro ==
 
-Upgrade for WooCommerce integration and premium booking features:
+Premium add-on for WooCommerce checkout and booking payment links:
 
 https://landtechwebdesigns.com/
 
 == Installation ==
 
-1. Upload the `kennel-press` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress plugins screen.
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Configure pets, kennels, locations, and bookings under the relevant admin menus.
+1. Install and activate **KennelFlow Core** (required).
+2. Install KennelFlow Boarding through the WordPress.org plugin directory or upload the zip under **Plugins → Add New → Upload Plugin**.
+3. Activate KennelFlow Boarding.
+4. Add kennels under **KennelFlow → Kennels** and manage bookings under **KennelPress → Kennel bookings**.
+
+= Build assets (developers) =
+
+From the plugin directory: `npm install` then `npm run build` (facility settings + Mobile Report Card PWA). Requires `build/pwa-report-card.js` and `assets/dist/facility-settings.js` for those screens to work.
 
 == User guide ==
 
-Step-by-step setup and daily use for the KennelFlow stack (Hub calendar, Kennel Press kennels and REST, resource types, booking flows) are documented in **docs/PLATFORM_GUIDE.md** at the KennelFlow repository root. Kennel Press requires **KennelFlow Core** to be installed and active first.
+Step-by-step setup for the KennelFlow stack (Hub calendar, kennels, REST, booking flows) is in **docs/PLATFORM_GUIDE.md** at the KennelFlow repository root.
 
 == Frequently Asked Questions ==
 
 = Does this require WooCommerce? =
 
-No. The free plugin does not require WooCommerce. WooCommerce is optional and used when **Kennel Press Pro** is installed.
+No. The free plugin does not require WooCommerce. WooCommerce is optional and used with **KennelFlow Boarding Pro**.
 
-= Who develops Kennel Press? =
+= Does Boarding work without KennelFlow Core? =
 
-Kennel Press is developed and supported by Land Tech Web Designs.
+No. Activate KennelFlow Core first. WordPress lists Core as a required plugin when supported by your site.
+
+= Where is the Mobile Report Card? =
+
+Use **KennelPress → Mobile Report Card** in wp-admin, or open `https://yoursite.com/kennelflow-mobile` while logged in as staff.
+
+== Screenshots ==
+
+1. Kennel bookings list with pet, kennel, dates, and status columns.
+2. Booking editor with pet, location, kennel, schedule, status, and boarding quote snapshot.
+3. Kennel booking calendar loaded from the REST API for a selected date range.
+4. WooCommerce boarding product setup (optional; pairs with KennelFlow Core revenue tools).
+5. WooCommerce boarding product pricing tiers for multi-night stays.
+6. WooCommerce boarding product variations for pet size and stay length.
+7. Kennel rules — hours, boarding windows, holidays, and per-location pricing settings.
+8. Mobile Report Card — today’s checked-in boarding roster on a phone-friendly staff screen.
+9. Mobile Report Card — daily photo and checklist form emailed to the pet owner.
 
 == Changelog ==
 
+= 0.1.2 =
+* Full boarding stack: Front Desk menu, kennels and bookings CPTs, kennel calendar, and kennel rules (facility settings).
+* REST API under `kennelflow-boarding/v1` with legacy `kennelpress/v1` compatibility.
+* Hub calendar bridge and boarding calendar resources for KennelFlow Core integration.
+* Mobile Report Card PWA: public `/kennelflow-mobile`, admin screen, report-cards REST, and rewrite auto-flush.
+* Booking transaction, availability, and admin booking editor improvements.
+* WordPress.org listing assets: banners, icons, and screenshots.
+
+= 0.1.1 =
+* Internal release alignment and REST hardening.
+
 = 0.1.0 =
-* Initial release.
-* Mobile Report Card PWA: public `/kennelflow-mobile` endpoint, admin screen, `report-cards` REST, booking list filters for roster (documented above).
+* Initial WordPress.org release.
+* Readme: **Tested up to: 7.0** (WordPress 7.0 release alignment).

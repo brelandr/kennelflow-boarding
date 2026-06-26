@@ -10,13 +10,15 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Boarding_Controller
  */
-class KennelFlow_Boarding_REST_Boarding_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Boarding_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( '', $namespace );
 	}
 
 	/**
@@ -26,7 +28,7 @@ class KennelFlow_Boarding_REST_Boarding_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/boarding/config',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
@@ -43,7 +45,7 @@ class KennelFlow_Boarding_REST_Boarding_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/boarding/quote',
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,

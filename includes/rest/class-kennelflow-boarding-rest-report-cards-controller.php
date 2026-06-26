@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Report_Cards_Controller
  */
-class KennelFlow_Boarding_REST_Report_Cards_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Report_Cards_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Allowed mood slugs.
@@ -19,10 +19,11 @@ class KennelFlow_Boarding_REST_Report_Cards_Controller extends WP_REST_Controlle
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
-		$this->rest_base = 'report-cards';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( 'report-cards', $namespace );
 	}
 
 	/**
@@ -32,7 +33,7 @@ class KennelFlow_Boarding_REST_Report_Cards_Controller extends WP_REST_Controlle
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/' . $this->rest_base,
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -341,10 +342,12 @@ class KennelFlow_Boarding_REST_Report_Cards_Controller extends WP_REST_Controlle
 				return $files['photo'];
 			}
 		}
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Authenticated REST route (permission_callback); fallback mirrors WP_REST_Server multipart handling.
 		if ( ! empty( $_FILES['photo'] ) && is_array( $_FILES['photo'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- File array for wp_handle_upload; validated by WordPress upload API.
 			return $_FILES['photo'];
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		return null;
 	}
 

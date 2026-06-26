@@ -94,35 +94,38 @@ class KennelFlow_Boarding_Plugin {
 	/**
 	 * REST API controllers.
 	 *
+	 * @param WP_REST_Server|null $server REST server instance (rest_api_init passes this; unused).
 	 * @return void
 	 */
-	public function register_rest() {
-		$availability = new KennelFlow_Boarding_REST_Availability_Controller();
-		$availability->register_routes();
+	public function register_rest( $server = null ) {
+		unset( $server );
 
-		$locations = new KennelFlow_Boarding_REST_Locations_Controller();
-		$locations->register_routes();
+		$namespaces = array(
+			'kennelflow-boarding/v1',
+			'kennelpress/v1',
+		);
 
-		$kennels = new KennelFlow_Boarding_REST_Kennels_Controller();
-		$kennels->register_routes();
+		$controller_classes = array(
+			'KennelFlow_Boarding_REST_Availability_Controller',
+			'KennelFlow_Boarding_REST_Locations_Controller',
+			'KennelFlow_Boarding_REST_Kennels_Controller',
+			'KennelFlow_Boarding_REST_Bookings_Controller',
+			'KennelFlow_Boarding_REST_Booking_Intake_Resources_Controller',
+			'KennelFlow_Boarding_REST_Pet_Care_Controller',
+			'KennelFlow_Boarding_REST_Facility_Settings_Controller',
+			'KennelFlow_Boarding_REST_Boarding_Controller',
+			'KennelFlow_Boarding_REST_Report_Cards_Controller',
+		);
 
-		$bookings = new KennelFlow_Boarding_REST_Bookings_Controller();
-		$bookings->register_routes();
-
-		$intake_res = new KennelFlow_Boarding_REST_Booking_Intake_Resources_Controller();
-		$intake_res->register_routes();
-
-		$pet_care = new KennelFlow_Boarding_REST_Pet_Care_Controller();
-		$pet_care->register_routes();
-
-		$facility = new KennelFlow_Boarding_REST_Facility_Settings_Controller();
-		$facility->register_routes();
-
-		$boarding = new KennelFlow_Boarding_REST_Boarding_Controller();
-		$boarding->register_routes();
-
-		$report_cards = new KennelFlow_Boarding_REST_Report_Cards_Controller();
-		$report_cards->register_routes();
+		foreach ( $namespaces as $rest_namespace ) {
+			foreach ( $controller_classes as $controller_class ) {
+				if ( ! class_exists( $controller_class ) ) {
+					continue;
+				}
+				$controller = new $controller_class( $rest_namespace );
+				$controller->register_routes();
+			}
+		}
 
 		/**
 		 * Fires after KennelFlow Boarding registers REST routes.

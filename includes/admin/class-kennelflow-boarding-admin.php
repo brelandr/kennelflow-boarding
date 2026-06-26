@@ -120,14 +120,12 @@ class KennelFlow_Boarding_Admin {
 			return;
 		}
 
-		wp_enqueue_script( 'jquery' );
-		wp_add_inline_script(
-			'jquery',
-			'jQuery(function($){function kennelpressOpenBookingPostboxes(){'
-			. "$( '.postbox' ).removeClass( 'closed' );"
-			. "$( '.postbox .inside' ).stop( true, true ).show();"
-			. '}kennelpressOpenBookingPostboxes();setTimeout(kennelpressOpenBookingPostboxes,50);setTimeout(kennelpressOpenBookingPostboxes,300);});',
-			'after'
+		wp_enqueue_script(
+			'kennelflow-boarding-admin-booking-postboxes',
+			KENNELFLOW_BOARDING_PLUGIN_URL . 'assets/js/admin-booking-open-postboxes.js',
+			array( 'jquery' ),
+			KENNELFLOW_BOARDING_VERSION,
+			true
 		);
 	}
 

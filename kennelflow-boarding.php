@@ -3,9 +3,10 @@
  * Plugin Name:       KennelFlow Boarding Manager
  * Plugin URI:        https://wordpress.org/plugins/kennelflow-boarding/
  * Description:       KennelFlow: manage pets, kennels, locations, and boarding bookings with availability checks and a REST API for custom booking and scheduling flows.
- * Version:           0.1.0
+ * Version:           0.1.2
  * Requires at least: 6.0
  * Requires PHP:      7.4
+ * Tested up to:      7.0
  * Author:            LandTech Web Designs
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'KENNELFLOW_BOARDING_VERSION', '0.1.0' );
+define( 'KENNELFLOW_BOARDING_VERSION', '0.1.2' );
 define( 'KENNELFLOW_BOARDING_PLUGIN_FILE', __FILE__ );
 define( 'KENNELFLOW_BOARDING_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KENNELFLOW_BOARDING_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

@@ -204,14 +204,16 @@ class KennelFlow_Boarding_PWA_Frontend {
 		echo '<meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '">';
 		echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">';
 		echo '<title>' . esc_html( $title ) . '</title>';
+		// phpcs:disable WordPress.WP.EnqueuedResources -- Stand-alone staff PWA shell outside normal theme/wp_enqueue_* lifecycle.
 		echo '<link rel="stylesheet" href="' . esc_url( $css_url ) . '?ver=' . esc_attr( $ver ) . '">';
 		echo '</head>';
 		echo '<body class="kf-pwa-body">';
-		echo '<div id="kf-pwa-root"></div>';
-		echo '<script type="application/json" id="kf-pwa-boot-json">' . $json . '</script>';
+		$boot_b64 = base64_encode( $json );
+		echo '<div id="kf-pwa-root" data-boot="' . esc_attr( $boot_b64 ) . '"></div>';
 		$boot_src = KENNELFLOW_BOARDING_PLUGIN_URL . 'assets/js/kf-pwa-shell-boot.js';
 		echo '<script src="' . esc_url( $boot_src ) . '?ver=' . esc_attr( $ver ) . '"></script>';
 		echo '<script src="' . esc_url( $js_url ) . '?ver=' . esc_attr( $ver ) . '" defer></script>';
+		// phpcs:enable WordPress.WP.EnqueuedResources
 		echo '</body></html>';
 	}
 }

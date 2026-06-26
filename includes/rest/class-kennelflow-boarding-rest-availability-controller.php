@@ -10,14 +10,15 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Availability_Controller
  */
-class KennelFlow_Boarding_REST_Availability_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Availability_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
-		$this->rest_base = 'availability';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( 'availability', $namespace );
 	}
 
 	/**
@@ -27,7 +28,7 @@ class KennelFlow_Boarding_REST_Availability_Controller extends WP_REST_Controlle
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/' . $this->rest_base,
 			array(
 				array(

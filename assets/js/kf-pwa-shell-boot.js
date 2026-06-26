@@ -1,18 +1,20 @@
 /**
- * Mobile Report PWA: read boot JSON, expose globals expected by the Webpack bundle.
+ * Mobile Report PWA: read boot payload from #kf-pwa-root[data-boot] (base64 JSON).
  *
- * The JSON must be valid UTF-8 and placed in a preceding <script type="application/json" id="kf-pwa-boot-json">.
+ * Exposes globals expected by the Webpack bundle.
  *
  * @package KennelFlow_Boarding
  */
 ( function () {
 	'use strict';
 
-	var el   = document.getElementById( 'kf-pwa-boot-json' );
+	var root = document.getElementById( 'kf-pwa-root' );
 	var data = {};
-	if ( el && el.textContent ) {
+	var raw  = root ? root.getAttribute( 'data-boot' ) : '';
+	if ( raw && typeof window.atob === 'function' ) {
 		try {
-			data = JSON.parse( el.textContent );
+			var txt = window.atob( raw );
+			data = txt ? JSON.parse( txt ) : {};
 		} catch ( e ) {
 			data = {};
 		}

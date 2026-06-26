@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Kennels_Controller
  */
-class KennelFlow_Boarding_REST_Kennels_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Kennels_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Max posts per page.
@@ -19,10 +19,11 @@ class KennelFlow_Boarding_REST_Kennels_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
-		$this->rest_base = 'kennels';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( 'kennels', $namespace );
 	}
 
 	/**
@@ -32,7 +33,7 @@ class KennelFlow_Boarding_REST_Kennels_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/' . $this->rest_base,
 			array(
 				array(

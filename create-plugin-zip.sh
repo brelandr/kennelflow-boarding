@@ -5,6 +5,7 @@ cd "$(dirname "$0")"
 
 zip -r kennelflow-boarding.zip . \
 	-x "*/.cursorrules" -x "*/.cursor/*" \
+	-x "*/.wordpress-org/*" \
 	-x "*/.git/*" -x "*/.github/*" -x "*/.gitignore" -x "*/.gitattributes" \
 	-x "*/node_modules/*" -x "*/.DS_Store" \
 	-x "*/vendor/*" -x "*/assets/src/*" \

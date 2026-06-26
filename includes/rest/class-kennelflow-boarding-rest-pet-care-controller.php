@@ -10,13 +10,15 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Pet_Care_Controller
  */
-class KennelFlow_Boarding_REST_Pet_Care_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Pet_Care_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( '', $namespace );
 	}
 
 	/**
@@ -26,7 +28,7 @@ class KennelFlow_Boarding_REST_Pet_Care_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/pets/(?P<id>[\d]+)/care-defaults',
 			array(
 				array(

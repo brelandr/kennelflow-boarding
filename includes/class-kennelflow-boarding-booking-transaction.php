@@ -81,33 +81,24 @@ class KennelFlow_Boarding_Booking_Transaction {
 		}
 
 		$table               = KennelFlow_Boarding_Booking_Index::table_name();
-		$kind_placeholders   = implode( ',', array_fill( 0, count( $kinds ), '%s' ) );
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$kind_placeholders   = implode( ', ', array_fill( 0, count( $kinds ), '%s' ) );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 
 		$prepare_args = array_merge(
-			array( $kennel_id, $exclude_post ),
+			array( $table, $wpdb->posts, $kennel_id, $exclude_post, 'kennelpress_booking' ),
 			$kinds,
 			$statuses,
 			array( $end_gmt, $start_gmt )
 		);
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table from install; IN lists from fixed arrays.
-		$sql = $wpdb->prepare(
-			"SELECT kfb.id FROM `{$table}` AS kfb
-			INNER JOIN {$wpdb->posts} AS b ON b.ID = kfb.post_id
-			WHERE kfb.kennel_id = %d
-			AND kfb.post_id <> %d
-			AND b.post_type = 'kennelpress_booking'
-			AND b.post_status IN ( 'publish', 'draft', 'pending', 'private' )
-			AND kfb.booking_kind IN ( {$kind_placeholders} )
-			AND kfb.status IN ( {$status_placeholders} )
-			AND kfb.start_gmt < %s
-			AND %s < kfb.end_gmt
-			LIMIT 1
-			FOR UPDATE",
-			...$prepare_args
+		$query = 'SELECT kfb.id FROM %i AS kfb INNER JOIN %i AS b ON b.ID = kfb.post_id WHERE kfb.kennel_id = %d AND kfb.post_id <> %d AND b.post_type = %s AND b.post_status IN ( \'publish\', \'draft\', \'pending\', \'private\' ) AND kfb.booking_kind IN (' . $kind_placeholders . ') AND kfb.status IN (' . $status_placeholders . ') AND kfb.start_gmt < %s AND %s < kfb.end_gmt LIMIT 1 FOR UPDATE';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- IN (...) lists expand sanitized literal %s tokens; arguments merged for prepare().
+		$sql = call_user_func_array(
+			array( $wpdb, 'prepare' ),
+			array_merge( array( $query ), $prepare_args )
 		);
-		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		if ( null === $sql ) {
 			return true;
@@ -154,30 +145,34 @@ class KennelFlow_Boarding_Booking_Transaction {
 		}
 
 		$table               = KennelFlow_Boarding_Booking_Index::table_name();
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 
 		if ( $exclude_post > 0 ) {
 			$prepare_args = array_merge(
-				array( $user_id, $exclude_post ),
+				array( $table, $user_id, $exclude_post ),
 				$statuses,
 				array( $end_gmt, $start_gmt )
 			);
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table from KennelFlow; IN list from sanitized array.
-			$sql = $wpdb->prepare(
-				"SELECT id FROM `{$table}` WHERE kennel_id = %d AND post_id <> %d AND status IN ({$status_placeholders}) AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE",
-				...$prepare_args
+			$query        = 'SELECT id FROM %i WHERE kennel_id = %d AND post_id <> %d AND status IN (' . $status_placeholders . ') AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE';
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$sql = call_user_func_array(
+				array( $wpdb, 'prepare' ),
+				array_merge( array( $query ), $prepare_args )
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		} else {
 			$prepare_args = array_merge(
-				array( $user_id ),
+				array( $table, $user_id ),
 				$statuses,
 				array( $end_gmt, $start_gmt )
 			);
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$sql = $wpdb->prepare(
-				"SELECT id FROM `{$table}` WHERE kennel_id = %d AND status IN ({$status_placeholders}) AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE",
-				...$prepare_args
+			$query        = 'SELECT id FROM %i WHERE kennel_id = %d AND status IN (' . $status_placeholders . ') AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE';
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$sql = call_user_func_array(
+				array( $wpdb, 'prepare' ),
+				array_merge( array( $query ), $prepare_args )
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		}
 
 		if ( null === $sql ) {
@@ -216,18 +211,20 @@ class KennelFlow_Boarding_Booking_Transaction {
 			return false;
 		}
 
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
+		$query               = 'SELECT id FROM %i WHERE post_id <> %d AND kennel_id = %d AND booking_kind = %s AND status IN (' . $status_placeholders . ') AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE';
 		$prepare_args        = array_merge(
-			array( $exclude_post, $kennel_id, $booking_kind ),
+			array( $table, $exclude_post, $kennel_id, $booking_kind ),
 			$statuses,
 			array( $end_gmt, $start_gmt )
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table from install; IN list from fixed array.
-		$sql = $wpdb->prepare(
-			"SELECT id FROM `{$table}` WHERE post_id <> %d AND kennel_id = %d AND booking_kind = %s AND status IN ({$status_placeholders}) AND start_gmt < %s AND end_gmt > %s LIMIT 1 FOR UPDATE",
-			...$prepare_args
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$sql = call_user_func_array(
+			array( $wpdb, 'prepare' ),
+			array_merge( array( $query ), $prepare_args )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		if ( null === $sql ) {
 			return true;

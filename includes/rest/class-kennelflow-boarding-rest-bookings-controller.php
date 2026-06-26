@@ -10,14 +10,15 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class KennelFlow_Boarding_REST_Bookings_Controller
  */
-class KennelFlow_Boarding_REST_Bookings_Controller extends WP_REST_Controller {
+class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_REST_Controller {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param string $namespace REST namespace.
 	 */
-	public function __construct() {
-		$this->namespace = 'kennelflow-boarding/v1';
-		$this->rest_base = 'bookings';
+	public function __construct( $namespace = 'kennelflow-boarding/v1' ) {
+		parent::__construct( 'bookings', $namespace );
 	}
 
 	/**
@@ -27,7 +28,7 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/' . $this->rest_base,
 			array(
 				array(
@@ -46,7 +47,7 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends WP_REST_Controller {
 		);
 
 		register_rest_route(
-			$this->namespace,
+			$this->get_namespace(),
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
 			array(
 				array(
@@ -618,18 +619,21 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 		$prepare_args        = array_merge(
-			array( $exclude_post, $resource_id, $booking_kind ),
+			array( $table, $exclude_post, $resource_id, $booking_kind ),
 			$statuses,
 			array( $end_gmt, $start_gmt )
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN list from fixed blocking statuses array.
-		$sql = $wpdb->prepare(
-			"SELECT 1 FROM `{$table}` WHERE post_id <> %d AND kennel_id = %d AND booking_kind = %s AND status IN ({$status_placeholders}) AND start_gmt < %s AND end_gmt > %s LIMIT 1",
-			...$prepare_args
+		$query = 'SELECT 1 FROM %i WHERE post_id <> %d AND kennel_id = %d AND booking_kind = %s AND status IN (' . $status_placeholders . ') AND start_gmt < %s AND end_gmt > %s LIMIT 1';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$sql = call_user_func_array(
+			array( $wpdb, 'prepare' ),
+			array_merge( array( $query ), $prepare_args )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		if ( null === $sql ) {
 			return false;

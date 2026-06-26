@@ -132,18 +132,21 @@ class KennelFlow_Boarding_Availability {
 		global $wpdb;
 
 		$table               = KennelFlow_Boarding_Booking_Index::table_name();
-		$status_placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 		$prepare_args        = array_merge(
-			array( $clinician_user_id, $kind ),
+			array( $table, $clinician_user_id, $kind ),
 			$statuses,
 			array( $end_gmt, $start_gmt )
 		);
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN list from fixed blocking statuses array; table from install.
-		$sql = $wpdb->prepare(
-			"SELECT 1 FROM `{$table}` WHERE kennel_id = %d AND booking_kind = %s AND status IN ({$status_placeholders}) AND start_gmt < %s AND end_gmt > %s LIMIT 1",
-			...$prepare_args
+		$query = 'SELECT 1 FROM %i WHERE kennel_id = %d AND booking_kind = %s AND status IN (' . $status_placeholders . ') AND start_gmt < %s AND end_gmt > %s LIMIT 1';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$sql = call_user_func_array(
+			array( $wpdb, 'prepare' ),
+			array_merge( array( $query ), $prepare_args )
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		if ( null === $sql ) {
 			return false;

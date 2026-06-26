@@ -146,16 +146,27 @@ class KennelFlow_Boarding_Install {
 		}
 
 		$val = get_option( KennelFlow_Boarding_Facility_Settings::OPTION_KEY, null );
-		if ( null === $val && null !== ( $o = get_option( KennelFlow_Boarding_Facility_Settings::OPTION_KEY_LEGACY, null ) ) && false !== $o ) {
-			update_option( KennelFlow_Boarding_Facility_Settings::OPTION_KEY, $o );
+		if ( null === $val ) {
+			$legacy_facility = get_option( KennelFlow_Boarding_Facility_Settings::OPTION_KEY_LEGACY, null );
+			if ( null !== $legacy_facility && false !== $legacy_facility ) {
+				update_option( KennelFlow_Boarding_Facility_Settings::OPTION_KEY, $legacy_facility );
+			}
 		}
+
 		$bust = get_option( 'kennelflow_boarding_query_cache_bust', null );
-		if ( null === $bust && false !== ( $b = get_option( 'kennelpress_query_cache_bust', false ) ) ) {
-			update_option( 'kennelflow_boarding_query_cache_bust', $b );
+		if ( null === $bust ) {
+			$legacy_bust = get_option( 'kennelpress_query_cache_bust', false );
+			if ( false !== $legacy_bust ) {
+				update_option( 'kennelflow_boarding_query_cache_bust', $legacy_bust );
+			}
 		}
+
 		$pwa = get_option( 'kennelflow_boarding_pwa_rewrite_rules_version', null );
-		if ( null === $pwa && false !== ( $o = get_option( 'kennelpress_pwa_rewrite_rules_version', false ) ) ) {
-			update_option( 'kennelflow_boarding_pwa_rewrite_rules_version', $o );
+		if ( null === $pwa ) {
+			$legacy_pwa = get_option( 'kennelpress_pwa_rewrite_rules_version', false );
+			if ( false !== $legacy_pwa ) {
+				update_option( 'kennelflow_boarding_pwa_rewrite_rules_version', $legacy_pwa );
+			}
 		}
 	}
 }
