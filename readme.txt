@@ -29,6 +29,14 @@ KennelFlow Boarding (KennelPress) is the boarding companion for **KennelFlow Cor
 
 Pets and physical locations use **KennelFlow Core** (`kf_pet`, `kf_location`). WooCommerce is optional; use **KennelFlow Boarding Pro** for checkout and payment links.
 
+== Try It Live - Preview This Plugin Instantly ==
+
+Preview KennelFlow Boarding in WordPress Playground: the blueprint installs **KennelFlow Core** and **KennelFlow Boarding** from WordPress.org, seeds demo pets and the owner portal, adds a **Book Boarding** page with `[ltkf_booking]`, and opens **KennelPress Front Desk** in wp-admin. Log in as **admin** / **password** (demo owner: **demoowner** / **password**).
+
+[Preview on WordPress Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/brelandr/kennelflow-boarding/main/blueprint.json)
+
+The blueprint ships as `blueprint.json` and `assets/blueprints/blueprint.json`. WordPress.org also serves a copy from plugin SVN for directory live preview.
+
 == Mobile report card (staff PWA) ==
 
 Authorized staff can send a daily photo + checklist email to the pet owner for boarding stays:
