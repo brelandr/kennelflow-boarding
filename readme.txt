@@ -11,8 +11,6 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Boarding for KennelFlow: kennels, bookings, availability REST API, kennel rules, and a Mobile Report Card for staff. Requires KennelFlow Core.
 
-**Developer:** Randy Breland ([brelandr](https://profiles.wordpress.org/brelandr/)), [Land Tech Web Designs](https://landtechwebdesigns.com). Contact: sales@landtechwebdesigns.com
-
 == Description ==
 
 KennelFlow Boarding (KennelPress) is the boarding companion for **KennelFlow Core**. It registers kennels and bookings, checks availability, exposes REST endpoints for custom booking flows, and adds front-desk tools for daily operations.
@@ -94,6 +92,10 @@ Use **KennelPress → Mobile Report Card** in wp-admin, or open `https://yoursit
 7. Kennel rules — hours, boarding windows, holidays, and per-location pricing settings.
 8. Mobile Report Card — today’s checked-in boarding roster on a phone-friendly staff screen.
 9. Mobile Report Card — daily photo and checklist form emailed to the pet owner.
+
+== Credits ==
+
+**Developer:** Randy Breland ([brelandr](https://profiles.wordpress.org/brelandr/)), [Land Tech Web Designs](https://landtechwebdesigns.com). Contact: sales@landtechwebdesigns.com
 
 == Changelog ==
 
