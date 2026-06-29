@@ -3,10 +3,10 @@
  * Plugin Name:       KennelFlow Boarding Manager
  * Plugin URI:        https://wordpress.org/plugins/kennelflow-boarding/
  * Description:       KennelFlow: manage pets, kennels, locations, and boarding bookings with availability checks and a REST API for custom booking and scheduling flows.
- * Version:           0.1.2
+ * Version:           0.2.6
  * Requires at least: 6.0
  * Requires PHP:      7.4
- * Tested up to:      7.0
+ * Tested up to:      6.8
  * Author:            LandTech Web Designs
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,21 +18,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'KENNELFLOW_BOARDING_VERSION', '0.1.2' );
+define( 'KENNELFLOW_BOARDING_VERSION', '0.2.6' );
 define( 'KENNELFLOW_BOARDING_PLUGIN_FILE', __FILE__ );
 define( 'KENNELFLOW_BOARDING_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'KENNELFLOW_BOARDING_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'KENNELFLOW_BOARDING_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-
-/**
- * Load translations at init priority 0 (WordPress 6.7+: avoid _load_textdomain_just_in_time before init).
- *
- * @return void
- */
-function kennelflow_boarding_load_textdomain() {
-	load_plugin_textdomain( 'kennelflow-boarding', false, dirname( KENNELFLOW_BOARDING_PLUGIN_BASENAME ) . '/languages' );
-}
-add_action( 'init', 'kennelflow_boarding_load_textdomain', 0 );
 
 require_once KENNELFLOW_BOARDING_PLUGIN_DIR . 'includes/class-kennelflow-boarding-autoloader.php';
 
@@ -66,8 +56,6 @@ function kennelpress() {
 /**
  * Boot only when KennelFlow Core (Hub) is active.
  *
- * Hub code runs at init priority 1 so translations load on init priority 0 first (WP 6.7+).
- *
  * @return void
  */
 function kennelflow_boarding_load() {
@@ -80,7 +68,7 @@ function kennelflow_boarding_load() {
 }
 
 /**
- * Instantiate after kennelflow_boarding_load_textdomain (init 0).
+ * Instantiate the plugin on init priority 1.
  *
  * @return void
  */
@@ -109,7 +97,7 @@ function kennelflow_boarding_notice_kf_core_required() {
 	}
 
 	printf(
-		'<div class="notice notice-error"><p>%s</p></div>',
+		'<div class="notice notice-error is-dismissible"><p>%s</p></div>',
 		esc_html__( 'KennelFlow Boarding requires KennelFlow Core to be installed and active.', 'kennelflow-boarding' )
 	);
 }

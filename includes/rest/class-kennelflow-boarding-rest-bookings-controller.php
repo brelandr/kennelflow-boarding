@@ -78,6 +78,9 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 	 * @return bool
 	 */
 	public function permissions_staff() {
+		if ( class_exists( 'KennelFlow_Boarding_Capabilities' ) ) {
+			return KennelFlow_Boarding_Capabilities::user_can_edit_bookings();
+		}
 		return current_user_can( 'edit_posts' );
 	}
 
@@ -252,6 +255,13 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 			$booking_kind = 'boarding';
 		}
 
+		if ( ! current_user_can( 'edit_posts' ) && 'boarding' === $booking_kind && function_exists( 'ltkf_rest_guard_owner_online_boarding' ) ) {
+			$guard = ltkf_rest_guard_owner_online_boarding( $pet_id );
+			if ( is_wp_error( $guard ) ) {
+				return $guard;
+			}
+		}
+
 		$resource_id = absint( $request->get_param( 'resource_id' ) );
 		if ( $resource_id < 1 ) {
 			$resource_id = absint( $request->get_param( 'kennel_id' ) );
@@ -363,7 +373,15 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 			return new WP_Error( 'kennelpress_bad_kind', __( 'Invalid booking kind.', 'kennelflow-boarding' ), array( 'status' => 400 ) );
 		}
 
-		$facility = KennelFlow_Boarding_Facility_Settings::validate_booking_interval( $location_post_id, $start_gmt, $end_gmt );
+		$facility = KennelFlow_Boarding_Facility_Settings::validate_booking_interval(
+			$location_post_id,
+			$start_gmt,
+			$end_gmt,
+			array(
+				'emergency_drop'  => (bool) $request->get_param( 'boarding_emergency_drop' ),
+				'extended_pickup' => (bool) $request->get_param( 'boarding_extended_pickup' ),
+			)
+		);
 		if ( is_wp_error( $facility ) ) {
 			return $facility;
 		}
@@ -543,6 +561,7 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 		$status = $request->get_param( 'status' );
 		if ( null !== $status && '' !== $status ) {
 			update_post_meta( $id, KennelFlow_Boarding_Post_Meta::BOOKING_STATUS, KennelFlow_Boarding_Post_Meta::sanitize_booking_status( $status ) );
+			KennelFlow_Boarding_Booking_Index::sync_from_post( $id );
 			KennelFlow_Boarding_Cache::bump_query_bust();
 		}
 
@@ -722,6 +741,7 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 			'grooming_style_notes'  => KennelFlow_Boarding_Post_Meta::BOOKING_GROOMING_STYLE_NOTES,
 			'coat_condition'        => KennelFlow_Boarding_Post_Meta::BOOKING_COAT_CONDITION,
 			'reason_for_visit'      => KennelFlow_Boarding_Post_Meta::BOOKING_REASON_FOR_VISIT,
+			'appointment_notes'     => KennelFlow_Boarding_Post_Meta::BOOKING_APPOINTMENT_NOTES,
 		);
 
 		$params = $request->get_params();
@@ -780,12 +800,14 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 			'start_gmt'             => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_START_GMT, true ),
 			'end_gmt'               => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_END_GMT, true ),
 			'status'                => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STATUS, true ),
+			'edit_url'              => current_user_can( 'edit_post', $post_id ) ? get_edit_post_link( $post_id, 'raw' ) : '',
 			'stay_diet'             => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STAY_DIET, true ),
 			'stay_medication_notes' => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STAY_MEDICATION_NOTES, true ),
 			'stay_belongings'       => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STAY_BELONGINGS, true ),
 			'grooming_style_notes'  => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_GROOMING_STYLE_NOTES, true ),
 			'coat_condition'        => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_COAT_CONDITION, true ),
 			'reason_for_visit'      => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_REASON_FOR_VISIT, true ),
+			'appointment_notes'     => (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_APPOINTMENT_NOTES, true ),
 		);
 
 		$clinic_exam = (int) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_KF_CLINIC_EXAM_ROOM_ID, true );
@@ -944,6 +966,10 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 				'type'     => 'string',
 				'required' => false,
 			),
+			'appointment_notes'                 => array(
+				'type'     => 'string',
+				'required' => false,
+			),
 			'clinic_exam_room_id'               => array(
 				'type'     => 'integer',
 				'required' => false,
@@ -976,6 +1002,10 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 				'type'     => 'string',
 				'required' => false,
 			),
+			'boarding_pet_sizes'                => array(
+				'type'     => 'object',
+				'required' => false,
+			),
 			'boarding_pet_count'                => array(
 				'type'     => 'integer',
 				'required' => false,
@@ -1003,6 +1033,13 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 			'boarding_interview_requested'      => array(
 				'type'     => 'boolean',
 				'required' => false,
+			),
+			'boarding_companion_pet_ids'        => array(
+				'type'     => 'array',
+				'required' => false,
+				'items'    => array(
+					'type' => 'integer',
+				),
 			),
 		);
 	}
@@ -1072,9 +1109,15 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 	 * @return array<string, string>
 	 */
 	protected function save_boarding_booking_meta( $post_id, $location_post_id, $start_gmt, $end_gmt, $request ) {
-		$settings = KennelFlow_Boarding_Facility_Settings::get_for_location( $location_post_id );
+		$settings    = KennelFlow_Boarding_Facility_Settings::get_for_location( $location_post_id );
+		$sizes_by_id = KennelFlow_Boarding_Boarding_Quote::sanitize_pet_sizes_by_id( $request->get_param( 'boarding_pet_sizes' ) );
+		$pet_sizes   = KennelFlow_Boarding_Boarding_Quote::sanitize_pet_sizes( $request->get_param( 'boarding_pet_sizes' ) );
+		if ( empty( $pet_sizes ) && ! empty( $sizes_by_id ) ) {
+			$pet_sizes = array_values( $sizes_by_id );
+		}
 		$args     = array(
 			'pet_size'                 => sanitize_key( (string) $request->get_param( 'boarding_pet_size' ) ),
+			'pet_sizes'                => $pet_sizes,
 			'pet_count'                => absint( $request->get_param( 'boarding_pet_count' ) ),
 			'emergency_drop'           => (bool) $request->get_param( 'boarding_emergency_drop' ),
 			'extended_pickup'          => (bool) $request->get_param( 'boarding_extended_pickup' ),
@@ -1097,11 +1140,24 @@ class KennelFlow_Boarding_REST_Bookings_Controller extends KennelFlow_Boarding_R
 		$choices = array(
 			'pet_size'                 => $args['pet_size'],
 			'pet_count'                => $args['pet_count'],
+			'pet_sizes'                => $pet_sizes,
+			'pet_sizes_by_id'          => $sizes_by_id,
 			'emergency_drop'           => $args['emergency_drop'],
 			'extended_pickup'          => $args['extended_pickup'],
 			'kennel_food'              => $args['kennel_food'],
 			'extra_day_after_extended' => $args['extra_day_after_extended'],
 		);
+		$companions = $request->get_param( 'boarding_companion_pet_ids' );
+		if ( is_array( $companions ) && ! empty( $companions ) ) {
+			$choices['companion_pet_ids'] = array_values(
+				array_filter(
+					array_map( 'absint', $companions ),
+					static function ( $id ) {
+						return $id > 0;
+					}
+				)
+			);
+		}
 		update_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_BOARDING_CHOICES_JSON, wp_json_encode( $choices ) );
 
 		$intake_raw = $request->get_param( 'boarding_intake' );

@@ -93,7 +93,7 @@ class KennelFlow_Boarding_Post_Types {
 			'public'          => false,
 			'show_ui'         => true,
 			'show_in_menu'    => function_exists( 'kennelpress_get_front_desk_menu_slug' ) ? kennelpress_get_front_desk_menu_slug() : ( function_exists( 'ltkf_get_hub_menu_slug' ) ? ltkf_get_hub_menu_slug() : 'edit.php?post_type=kf_pet' ),
-			'capability_type' => 'post',
+			'capability_type' => 'kennelflow_boarding_booking',
 			'map_meta_cap'    => true,
 			'supports'        => array( 'title', 'editor' ),
 			'has_archive'     => false,

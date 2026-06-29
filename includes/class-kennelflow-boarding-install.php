@@ -15,7 +15,7 @@ class KennelFlow_Boarding_Install {
 	/**
 	 * Schema version for migrations.
 	 */
-	const DB_VERSION = '3';
+	const DB_VERSION = '4';
 
 	/**
 	 * Option key storing installed DB version.
@@ -82,6 +82,20 @@ class KennelFlow_Boarding_Install {
 		) {$charset_collate};";
 
 		dbDelta( $sql_bookings );
+
+		$session_media = $wpdb->prefix . 'kennelflow_boarding_session_media';
+		$sql_session   = "CREATE TABLE {$session_media} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			booking_post_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			media_kind varchar(32) NOT NULL DEFAULT 'check_in',
+			attachment_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			staff_user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_gmt datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY booking_post_id (booking_post_id)
+		) {$charset_collate};";
+
+		dbDelta( $sql_session );
 
 		update_option( self::OPTION_DB_VERSION, self::DB_VERSION );
 		delete_option( self::OPTION_DB_VERSION_LEGACY );

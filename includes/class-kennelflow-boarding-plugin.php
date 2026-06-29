@@ -19,6 +19,7 @@ class KennelFlow_Boarding_Plugin {
 	 */
 	public function init() {
 		KennelFlow_Boarding_Roles::register_roles();
+		KennelFlow_Boarding_Capabilities::init();
 
 		KennelFlow_Boarding_Boarding_Commerce::init();
 
@@ -27,6 +28,8 @@ class KennelFlow_Boarding_Plugin {
 		}
 
 		KennelFlow_Boarding_Calendar_Bridge::init();
+		KennelFlow_Boarding_Calendar_Access::init();
+		KennelFlow_Boarding_Session_Media_REST::init();
 		KennelFlow_Boarding_Run_Card::init();
 		KennelFlow_Boarding_Care_Sheet_Emailer::init();
 		if ( class_exists( 'KennelFlow_Boarding_PWA_Frontend' ) ) {
@@ -69,8 +72,14 @@ class KennelFlow_Boarding_Plugin {
 	 */
 	public function boot_admin() {
 		KennelFlow_Boarding_Admin::init();
+		if ( class_exists( 'KennelFlow_Boarding_Admin_Booking_Actions' ) ) {
+			KennelFlow_Boarding_Admin_Booking_Actions::init();
+		}
 		if ( class_exists( 'KennelFlow_Boarding_PWA_Report_Admin' ) ) {
 			KennelFlow_Boarding_PWA_Report_Admin::init();
+		}
+		if ( class_exists( 'KennelFlow_Boarding_Admin_Booking_Session_Media' ) ) {
+			KennelFlow_Boarding_Admin_Booking_Session_Media::init();
 		}
 
 		/**
@@ -157,6 +166,7 @@ class KennelFlow_Boarding_Plugin {
 		}
 
 		KennelFlow_Boarding_Roles::register_roles();
+		KennelFlow_Boarding_Capabilities::register_caps();
 		KennelFlow_Boarding_Install::install();
 		KennelFlow_Boarding_Post_Types::register();
 		KennelFlow_Boarding_Cron::maybe_schedule();

@@ -66,6 +66,11 @@ class KennelFlow_Boarding_Post_Meta {
 	const BOOKING_REASON_FOR_VISIT = '_kf_reason_for_visit';
 
 	/**
+	 * Staff / clinical notes for clinic appointments (shared Hub key).
+	 */
+	const BOOKING_APPOINTMENT_NOTES = '_kf_appointment_notes';
+
+	/**
 	 * Optional exam room (kennel CPT) when primary `resource_id` is a clinician user ID.
 	 */
 	const BOOKING_KF_CLINIC_EXAM_ROOM_ID = '_kf_clinic_exam_room_id';
@@ -303,6 +308,18 @@ class KennelFlow_Boarding_Post_Meta {
 		register_post_meta(
 			'kennelpress_booking',
 			self::BOOKING_REASON_FOR_VISIT,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => true,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_stay_text' ),
+				'auth_callback'     => $auth_booking,
+			)
+		);
+
+		register_post_meta(
+			'kennelpress_booking',
+			self::BOOKING_APPOINTMENT_NOTES,
 			array(
 				'type'              => 'string',
 				'single'            => true,

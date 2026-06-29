@@ -249,22 +249,44 @@ class KennelFlow_Boarding_Booking_Index {
 		global $wpdb;
 		$table = self::table_name();
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Index maintenance.
-		$wpdb->replace(
-			$table,
-			array(
-				'post_id'      => $post_id,
-				'pet_id'       => $pet_id,
-				'kennel_id'    => $kennel_id,
-				'location_id'  => $location_id,
-				'start_gmt'    => $start,
-				'end_gmt'      => $end,
-				'status'       => $status,
-				'booking_kind' => $kind,
-				'created_gmt'  => $created_gmt,
-			),
-			array( '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
+		$row_data = array(
+			'pet_id'       => $pet_id,
+			'kennel_id'    => $kennel_id,
+			'location_id'  => $location_id,
+			'start_gmt'    => $start,
+			'end_gmt'      => $end,
+			'status'       => $status,
+			'booking_kind' => $kind,
 		);
+		$row_format = array( '%d', '%d', '%d', '%s', '%s', '%s', '%s' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Index maintenance.
+		if ( $old_row ) {
+			$wpdb->update(
+				$table,
+				$row_data,
+				array( 'post_id' => $post_id ),
+				$row_format,
+				array( '%d' )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Index maintenance.
+			$wpdb->insert(
+				$table,
+				array(
+					'post_id'      => $post_id,
+					'pet_id'       => $pet_id,
+					'kennel_id'    => $kennel_id,
+					'location_id'  => $location_id,
+					'start_gmt'    => $start,
+					'end_gmt'      => $end,
+					'status'       => $status,
+					'booking_kind' => $kind,
+					'created_gmt'  => $created_gmt,
+				),
+				array( '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
+			);
+		}
 
 		if ( 'cancelled' === $status && $old_row && self::status_blocks_kennel_slot( (string) $old_row->status ) && 'cancelled' !== (string) $old_row->status ) {
 			self::fire_kf_booking_cancelled( $post_id, $old_row, 'cancelled' );

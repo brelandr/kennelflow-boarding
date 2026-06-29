@@ -434,12 +434,13 @@ class KennelFlow_Boarding_Facility_Settings {
 	/**
 	 * Validate boarding interval against rules (drop-off / pick-up local times, holidays, blackouts).
 	 *
-	 * @param int    $location_post_id Hub `kf_location` post ID.
-	 * @param string $start_gmt        Start UTC.
-	 * @param string $end_gmt          End UTC.
+	 * @param int                  $location_post_id Hub `kf_location` post ID.
+	 * @param string               $start_gmt        Start UTC.
+	 * @param string               $end_gmt          End UTC.
+	 * @param array<string, mixed> $context          Optional: emergency_drop, extended_pickup.
 	 * @return true|WP_Error
 	 */
-	public static function validate_booking_interval( $location_post_id, $start_gmt, $end_gmt ) {
+	public static function validate_booking_interval( $location_post_id, $start_gmt, $end_gmt, $context = array() ) {
 		$location_post_id = absint( $location_post_id );
 		if ( $location_post_id < 1 ) {
 			return true;
@@ -538,11 +539,11 @@ class KennelFlow_Boarding_Facility_Settings {
 			$bd_e = isset( $settings['boarding_daily'][ $day_e ] ) && is_array( $settings['boarding_daily'][ $day_e ] )
 				? $settings['boarding_daily'][ $day_e ]
 				: array();
-			$err  = self::check_boarding_drop_window( $bd_s, $start_local, $settings );
+			$err  = self::check_boarding_drop_window( $bd_s, $start_local, $settings, $context );
 			if ( is_wp_error( $err ) ) {
 				return $err;
 			}
-			$err = self::check_boarding_pick_window( $bd_e, $end_local, $settings );
+			$err = self::check_boarding_pick_window( $bd_e, $end_local, $settings, $context );
 			if ( is_wp_error( $err ) ) {
 				return $err;
 			}
@@ -566,9 +567,10 @@ class KennelFlow_Boarding_Facility_Settings {
 	 * @param array             $bd       Day row from boarding_daily.
 	 * @param DateTimeImmutable $local    Local instant.
 	 * @param array             $settings Full settings.
+	 * @param array             $context  Owner wizard flags.
 	 * @return true|WP_Error
 	 */
-	protected static function check_boarding_drop_window( $bd, $local, $settings ) {
+	protected static function check_boarding_drop_window( $bd, $local, $settings, $context = array() ) {
 		if ( ! is_array( $bd ) ) {
 			$bd = array();
 		}
@@ -597,6 +599,10 @@ class KennelFlow_Boarding_Facility_Settings {
 			return true;
 		}
 
+		$emergency_flag = ! empty( $context['emergency_drop'] );
+		if ( $emergency_flag && ! empty( $settings['boarding_emergency_drop_enabled'] ) && $m < $dsm ) {
+			return true;
+		}
 		if ( ! empty( $settings['boarding_emergency_drop_enabled'] ) && $m < $dsm ) {
 			return true;
 		}
@@ -614,9 +620,10 @@ class KennelFlow_Boarding_Facility_Settings {
 	 * @param array             $bd       Day row.
 	 * @param DateTimeImmutable $local    Local instant.
 	 * @param array             $settings Full settings.
+	 * @param array             $context  Owner wizard flags.
 	 * @return true|WP_Error
 	 */
-	protected static function check_boarding_pick_window( $bd, $local, $settings ) {
+	protected static function check_boarding_pick_window( $bd, $local, $settings, $context = array() ) {
 		if ( ! is_array( $bd ) ) {
 			$bd = array();
 		}
@@ -653,7 +660,12 @@ class KennelFlow_Boarding_Facility_Settings {
 			return true;
 		}
 
-		$allow_late = ! empty( $settings['boarding_charge_extra_day_after_extended'] );
+		$extended_flag = ! empty( $context['extended_pickup'] );
+		$allow_late    = ! empty( $settings['boarding_charge_extra_day_after_extended'] );
+
+		if ( $extended_flag && ! empty( $settings['boarding_extended_hours_enabled'] ) && $m > $pem ) {
+			return true;
+		}
 
 		if ( ! empty( $settings['boarding_extended_hours_enabled'] ) ) {
 			$ext_raw = isset( $bd['ext_end'] ) ? (string) $bd['ext_end'] : '';

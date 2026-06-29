@@ -204,7 +204,7 @@ class KennelFlow_Boarding_Admin {
 				<?php esc_html_e( 'Configure operating hours, holiday closures, and blackout windows per location. Rules apply when “enforce rules” is on. Drop-off and pick-up times are checked in the location timezone.', 'kennelflow-boarding' ); ?>
 			</p>
 			<?php if ( ! is_readable( KENNELFLOW_BOARDING_PLUGIN_DIR . 'assets/dist/facility-settings.js' ) ) : ?>
-				<div class="notice notice-warning"><p>
+				<div class="notice notice-warning inline"><p>
 					<?php esc_html_e( 'Kennel rules UI assets are missing. From the kennelflow-boarding plugin folder run: npm install && npm run build:facility', 'kennelflow-boarding' ); ?>
 				</p></div>
 			<?php endif; ?>
@@ -356,6 +356,8 @@ class KennelFlow_Boarding_Admin {
 		if ( '' === $status ) {
 			$status = 'pending';
 		}
+		$reason_for_visit  = (string) get_post_meta( $post->ID, KennelFlow_Boarding_Post_Meta::BOOKING_REASON_FOR_VISIT, true );
+		$appointment_notes = (string) get_post_meta( $post->ID, KennelFlow_Boarding_Post_Meta::BOOKING_APPOINTMENT_NOTES, true );
 
 		$pets    = self::get_posts_options( 'kf_pet' );
 		$kennels = self::get_kennel_options();
@@ -437,6 +439,20 @@ class KennelFlow_Boarding_Admin {
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $status, $value ); ?>><?php echo esc_html( $label ); ?></option>
 					<?php endforeach; ?>
 				</select>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="kennelpress_booking_reason_for_visit"><?php esc_html_e( 'Reason for visit', 'kennelflow-boarding' ); ?></label></th>
+			<td>
+				<input type="text" class="large-text" name="kennelpress_booking_reason_for_visit" id="kennelpress_booking_reason_for_visit" value="<?php echo esc_attr( $reason_for_visit ); ?>" />
+				<p class="description"><?php esc_html_e( 'Chief complaint or visit purpose for clinic appointments.', 'kennelflow-boarding' ); ?></p>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"><label for="kennelpress_booking_appointment_notes"><?php esc_html_e( 'Appointment notes', 'kennelflow-boarding' ); ?></label></th>
+			<td>
+				<textarea class="large-text" rows="4" name="kennelpress_booking_appointment_notes" id="kennelpress_booking_appointment_notes"><?php echo esc_textarea( $appointment_notes ); ?></textarea>
+				<p class="description"><?php esc_html_e( 'Internal notes for clinical staff.', 'kennelflow-boarding' ); ?></p>
 			</td>
 		</tr>
 		</tbody></table>
@@ -551,7 +567,17 @@ class KennelFlow_Boarding_Admin {
 		);
 		$out = array();
 		foreach ( $q->posts as $p ) {
-			$out[ (int) $p->ID ] = get_the_title( $p ) ? get_the_title( $p ) : '#' . (int) $p->ID;
+			$id    = (int) $p->ID;
+			$title = get_the_title( $p ) ? get_the_title( $p ) : '#' . $id;
+			if (
+				function_exists( 'ltkf_get_pet_post_type' )
+				&& function_exists( 'ltkf_get_pet_select_label' )
+				&& ltkf_get_pet_post_type() === $post_type
+			) {
+				$out[ $id ] = ltkf_get_pet_select_label( $id, $title );
+			} else {
+				$out[ $id ] = $title;
+			}
 		}
 		// phpcs:enable WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 		return $out;
@@ -798,6 +824,8 @@ class KennelFlow_Boarding_Admin {
 		$end   = isset( $_POST['kennelpress_booking_end_gmt'] ) ? sanitize_text_field( wp_unslash( $_POST['kennelpress_booking_end_gmt'] ) ) : '';
 
 		$status = isset( $_POST['kennelpress_booking_status'] ) ? sanitize_key( wp_unslash( $_POST['kennelpress_booking_status'] ) ) : 'pending';
+		$reason = isset( $_POST['kennelpress_booking_reason_for_visit'] ) ? KennelFlow_Boarding_Post_Meta::sanitize_stay_text( wp_unslash( $_POST['kennelpress_booking_reason_for_visit'] ) ) : '';
+		$notes  = isset( $_POST['kennelpress_booking_appointment_notes'] ) ? KennelFlow_Boarding_Post_Meta::sanitize_stay_text( wp_unslash( $_POST['kennelpress_booking_appointment_notes'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$start_ok = KennelFlow_Boarding_Availability::parse_gmt_mysql( $start );
@@ -816,6 +844,17 @@ class KennelFlow_Boarding_Admin {
 
 		$status = KennelFlow_Boarding_Post_Meta::sanitize_booking_status( $status );
 		update_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STATUS, $status );
+
+		if ( '' !== $reason ) {
+			update_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_REASON_FOR_VISIT, $reason );
+		} else {
+			delete_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_REASON_FOR_VISIT );
+		}
+		if ( '' !== $notes ) {
+			update_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_APPOINTMENT_NOTES, $notes );
+		} else {
+			delete_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_APPOINTMENT_NOTES );
+		}
 	}
 
 	/**
@@ -856,11 +895,44 @@ class KennelFlow_Boarding_Admin {
 		switch ( $column ) {
 			case 'kennelpress_booking_status':
 				$s = (string) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_STATUS, true );
-				echo $s ? esc_html( $s ) : esc_html__( '—', 'kennelflow-boarding' );
+				if ( '' === $s ) {
+					$s = 'pending';
+				}
+				echo esc_html( $s );
+				if ( class_exists( 'KennelFlow_Boarding_Admin_Booking_Actions' ) && KennelFlow_Boarding_Admin_Booking_Actions::current_user_can_manage() ) {
+					if ( in_array( $s, array( 'pending', 'pending_payment' ), true ) ) {
+						$url = KennelFlow_Boarding_Admin_Booking_Actions::status_action_url(
+							$post_id,
+							'confirmed',
+							admin_url( 'edit.php?post_type=kennelpress_booking' )
+						);
+						echo ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'Confirm', 'kennelflow-boarding' ) . '</a>';
+					} elseif ( 'confirmed' === $s ) {
+						$url = KennelFlow_Boarding_Admin_Booking_Actions::status_action_url(
+							$post_id,
+							'checked_in',
+							admin_url( 'edit.php?post_type=kennelpress_booking' )
+						);
+						echo ' <a href="' . esc_url( $url ) . '">' . esc_html__( 'Check in', 'kennelflow-boarding' ) . '</a>';
+					}
+				}
 				break;
 			case 'kennelpress_booking_pet':
 				$pid = (int) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_PET_ID, true );
-				echo $pid ? esc_html( get_the_title( $pid ) ) : esc_html__( '—', 'kennelflow-boarding' );
+				if ( $pid ) {
+					$pet_edit = get_edit_post_link( $pid, 'raw' );
+					if ( is_string( $pet_edit ) && '' !== $pet_edit ) {
+						printf(
+							'<a href="%s">%s</a>',
+							esc_url( $pet_edit ),
+							esc_html( get_the_title( $pid ) )
+						);
+					} else {
+						echo esc_html( get_the_title( $pid ) );
+					}
+				} else {
+					esc_html_e( '—', 'kennelflow-boarding' );
+				}
 				break;
 			case 'kennelpress_booking_kennel':
 				$kid = (int) get_post_meta( $post_id, KennelFlow_Boarding_Post_Meta::BOOKING_KENNEL_ID, true );

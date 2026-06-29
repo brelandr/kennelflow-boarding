@@ -1,0 +1,51 @@
+.ltkf-device-camera {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ltkf-device-camera__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.55);
+}
+
+.ltkf-device-camera__panel {
+	position: relative;
+	z-index: 1;
+	width: min(92vw, 420px);
+	padding: 16px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.ltkf-device-camera__title {
+	margin: 0 0 12px;
+	font-size: 16px;
+}
+
+.ltkf-device-camera__video {
+	display: block;
+	width: 100%;
+	max-height: 55vh;
+	background: #000;
+	border-radius: 4px;
+	object-fit: cover;
+}
+
+.ltkf-device-camera__error {
+	margin: 0 0 12px;
+	color: #b32d2e;
+}
+
+.ltkf-device-camera__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 12px;
+}

@@ -38,11 +38,15 @@ class KennelFlow_Boarding_Boarding_Quote {
 
 		$settings = KennelFlow_Boarding_Facility_Settings::get_for_location( $location_post_id );
 
-		$pet_size = isset( $args['pet_size'] ) ? sanitize_key( (string) $args['pet_size'] ) : 'medium';
+		$pet_sizes = self::sanitize_pet_sizes( isset( $args['pet_sizes'] ) ? $args['pet_sizes'] : array() );
+		$pet_size  = isset( $args['pet_size'] ) ? sanitize_key( (string) $args['pet_size'] ) : 'medium';
 		if ( ! in_array( $pet_size, array( 'small', 'medium', 'large' ), true ) ) {
 			$pet_size = 'medium';
 		}
 		$pet_count = isset( $args['pet_count'] ) ? max( 1, absint( $args['pet_count'] ) ) : 1;
+		if ( ! empty( $pet_sizes ) ) {
+			$pet_count = max( $pet_count, count( $pet_sizes ) );
+		}
 		$emergency = ! empty( $args['emergency_drop'] );
 		$extended  = ! empty( $args['extended_pickup'] );
 		$food      = ! empty( $args['kennel_food'] );
@@ -65,37 +69,58 @@ class KennelFlow_Boarding_Boarding_Quote {
 
 		$nights = (int) max( 1, ceil( ( $end_ts - $start_ts ) / DAY_IN_SECONDS ) );
 
-		$base = (float) self::pick_fee_for_size( $settings, $pet_size );
-		if ( $base <= 0 ) {
-			$base = (float) ( isset( $settings['boarding_daily_fee'] ) ? $settings['boarding_daily_fee'] : 0 );
-		}
-
 		$line_items = array();
 		$subtotal   = 0.0;
+		$room_sub   = 0.0;
+		$base       = 0.0;
 
-		$room_sub     = $base * $nights * $pet_count;
-		$line_items[] = array(
-			'code'  => 'room',
-			'label' => __( 'Boarding', 'kennelflow-boarding' ),
-			'qty'   => $nights * $pet_count,
-			'unit'  => $base,
-			'total' => round( $room_sub, 2 ),
-		);
-		$subtotal    += $room_sub;
+		if ( ! empty( $pet_sizes ) ) {
+			foreach ( $pet_sizes as $size_slug ) {
+				$fee = (float) self::pick_fee_for_size( $settings, $size_slug );
+				if ( $fee <= 0 ) {
+					$fee = (float) ( isset( $settings['boarding_daily_fee'] ) ? $settings['boarding_daily_fee'] : 0 );
+				}
+				$room_sub += $fee * $nights;
+			}
+			$base         = count( $pet_sizes ) > 0 ? $room_sub / ( $nights * count( $pet_sizes ) ) : 0;
+			$line_items[] = array(
+				'code'  => 'room',
+				'label' => __( 'Boarding', 'kennelflow-boarding' ),
+				'qty'   => $nights * count( $pet_sizes ),
+				'unit'  => round( $base, 2 ),
+				'total' => round( $room_sub, 2 ),
+			);
+			$subtotal += $room_sub;
+		} else {
+			$base = (float) self::pick_fee_for_size( $settings, $pet_size );
+			if ( $base <= 0 ) {
+				$base = (float) ( isset( $settings['boarding_daily_fee'] ) ? $settings['boarding_daily_fee'] : 0 );
+			}
 
-		if ( $pet_count > 1 ) {
-			$add_fee = (float) ( isset( $settings['boarding_additional_pet_fee'] ) ? $settings['boarding_additional_pet_fee'] : 0 );
-			if ( $add_fee > 0 ) {
-				$extra_pets   = $pet_count - 1;
-				$ap           = $add_fee * $nights * $extra_pets;
-				$line_items[] = array(
-					'code'  => 'additional_pets',
-					'label' => __( 'Additional pets (same stay)', 'kennelflow-boarding' ),
-					'qty'   => $nights * $extra_pets,
-					'unit'  => $add_fee,
-					'total' => round( $ap, 2 ),
-				);
-				$subtotal    += $ap;
+			$room_sub     = $base * $nights * $pet_count;
+			$line_items[] = array(
+				'code'  => 'room',
+				'label' => __( 'Boarding', 'kennelflow-boarding' ),
+				'qty'   => $nights * $pet_count,
+				'unit'  => $base,
+				'total' => round( $room_sub, 2 ),
+			);
+			$subtotal += $room_sub;
+
+			if ( $pet_count > 1 ) {
+				$add_fee = (float) ( isset( $settings['boarding_additional_pet_fee'] ) ? $settings['boarding_additional_pet_fee'] : 0 );
+				if ( $add_fee > 0 ) {
+					$extra_pets   = $pet_count - 1;
+					$ap           = $add_fee * $nights * $extra_pets;
+					$line_items[] = array(
+						'code'  => 'additional_pets',
+						'label' => __( 'Additional pets (same stay)', 'kennelflow-boarding' ),
+						'qty'   => $nights * $extra_pets,
+						'unit'  => $add_fee,
+						'total' => round( $ap, 2 ),
+					);
+					$subtotal += $ap;
+				}
 			}
 		}
 
@@ -130,11 +155,12 @@ class KennelFlow_Boarding_Boarding_Quote {
 		if ( $food && ! empty( $settings['boarding_food_enabled'] ) ) {
 			$ff = (float) ( isset( $settings['boarding_food_fee'] ) ? $settings['boarding_food_fee'] : 0 );
 			if ( $ff > 0 ) {
-				$ftotal       = $ff * $nights * $pet_count;
+				$food_pets    = ! empty( $pet_sizes ) ? count( $pet_sizes ) : $pet_count;
+				$ftotal       = $ff * $nights * $food_pets;
 				$line_items[] = array(
 					'code'  => 'kennel_food',
 					'label' => __( 'Kennel-provided food', 'kennelflow-boarding' ),
-					'qty'   => $nights * $pet_count,
+					'qty'   => $nights * $food_pets,
 					'unit'  => $ff,
 					'total' => round( $ftotal, 2 ),
 				);
@@ -144,7 +170,10 @@ class KennelFlow_Boarding_Boarding_Quote {
 
 		$extra_after_ext = ! empty( $args['extra_day_after_extended'] );
 		if ( $extra_after_ext && ! empty( $settings['boarding_charge_extra_day_after_extended'] ) ) {
-			$xd_fee       = $base * $pet_count;
+			$per_pet_day = ! empty( $pet_sizes )
+				? $room_sub / max( 1, $nights * count( $pet_sizes ) )
+				: $base;
+			$xd_fee       = $per_pet_day * ( ! empty( $pet_sizes ) ? count( $pet_sizes ) : $pet_count );
 			$line_items[] = array(
 				'code'  => 'late_pickup_day',
 				'label' => __( 'Additional day (late pick-up)', 'kennelflow-boarding' ),
@@ -195,6 +224,7 @@ class KennelFlow_Boarding_Boarding_Quote {
 			'location_id'       => $location_post_id,
 			'nights'            => $nights,
 			'pet_size'          => $pet_size,
+			'pet_sizes'         => $pet_sizes,
 			'pet_count'         => $pet_count,
 			'subtotal'          => round( $subtotal, 2 ),
 			'discount_total'    => round( $discount, 2 ),
@@ -228,5 +258,47 @@ class KennelFlow_Boarding_Boarding_Quote {
 			}
 		}
 		return (float) ( isset( $settings['boarding_daily_fee'] ) ? $settings['boarding_daily_fee'] : 0 );
+	}
+
+	/**
+	 * Sanitize an ordered list of pet size slugs for multi-pet quotes.
+	 *
+	 * @param mixed $raw Request value.
+	 * @return string[]
+	 */
+	public static function sanitize_pet_sizes( $raw ) {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $raw as $size ) {
+			$slug = sanitize_key( (string) $size );
+			if ( in_array( $slug, array( 'small', 'medium', 'large' ), true ) ) {
+				$out[] = $slug;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Sanitize pet ID => size map from REST / wizard.
+	 *
+	 * @param mixed $raw Request value.
+	 * @return array<string, string>
+	 */
+	public static function sanitize_pet_sizes_by_id( $raw ) {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $raw as $pet_id => $size ) {
+			$id   = absint( $pet_id );
+			$slug = sanitize_key( (string) $size );
+			if ( $id < 1 || ! in_array( $slug, array( 'small', 'medium', 'large' ), true ) ) {
+				continue;
+			}
+			$out[ (string) $id ] = $slug;
+		}
+		return $out;
 	}
 }
